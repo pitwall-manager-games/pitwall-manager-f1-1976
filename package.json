@@ -2,7 +2,6 @@
   "name": "pitwall-manager-f1-1976",
   "version": "0.2.0",
   "description": "Juego de estrategia y gestión en tiempo real sin comunicación por radio. Las órdenes se transmiten mediante carteles en la línea de meta.",
-  "main": "index.js",
   "scripts": {
     "dev": "servor src --reload",
     "lint": "oxlint src/",
