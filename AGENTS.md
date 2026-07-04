@@ -1,4 +1,4 @@
-# Pitwall Manager Classic — Agent Guide
+# Pitwall Manager 1976 — Agent Guide
 
 ## Commands (pnpm, not npm)
 

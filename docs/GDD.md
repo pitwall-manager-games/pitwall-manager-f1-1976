@@ -1,17 +1,17 @@
-# Documento de Diseño de Juego (GDD) - Pitwall Manager: F1 Clásico
+# Documento de Diseño de Juego (GDD) - Pitwall Manager: F1 1976
 
 ## 1. Visión General
-* **Título Definitivo:** Pitwall Manager: F1 Clásico
+* **Título Definitivo:** Pitwall Manager: F1 1976
 * **Género:** Estrategia / Gestión Deportiva en Tiempo Real.
 * **Rol del Jugador:** Director de Equipo (Team Principal / Jefe de Estrategia).
 * **Plataforma:** Navegadores Web (Escritorio).
 * **Tecnologías:** HTML5, CSS3, JavaScript Vanilla (ES6 Modules).
-* **Ambientación:** Época sin comunicaciones por radio. Las órdenes se transmiten al piloto mediante carteles en la línea de meta.
+* **Ambientación:** Temporada 1976 — la cúspide de la F1 clásica. Motores V8, V12 y flat-12 atmosféricos, sin asistencias electrónicas ni DRS, telemetría escasa o nula. No hay comunicaciones por radio: las órdenes del equipo se transmiten al piloto mediante carteles en la línea de meta y los datos de carrera solo se conocen al completar cada vuelta.
 
 ## 2. Pilares de Diseño
-* **Presión en el Muro de Boxes:** Decisiones estratégicas basadas en telemetría en tiempo real.
-* **Gestión de Recursos Críticos:** Controlar el ritmo para equilibrar la velocidad con la degradación de neumáticos.
-* **Estética de Ingeniería:** Interfaz de alto contraste y modo oscuro que emula las pantallas de datos reales de la Fórmula 1.
+* **Presión en el Muro de Boxes:** Decisiones estratégicas basadas en datos limitados — la información solo llega cuando el piloto cruza la meta.
+* **Gestión de Recursos Críticos:** Controlar el ritmo para equilibrar velocidad, degradación de neumáticos y consumo de combustible.
+* **Estética de Ingeniería:** Interfaz de alto contraste y modo oscuro que emula las pantallas de cronometraje y datos de la F1 de los 70.
 
 ---
 
@@ -32,7 +32,8 @@ El código se organiza de forma modular para garantizar la escalabilidad del jue
 ### 4.1. El Motor de Simulación (Game Loop)
 * El bucle se gestiona en `app.js` mediante un temporizador asíncrono.
 * Cada monoplaza posee un porcentaje de progreso de vuelta (0% a 100%).
-* Al llegar al 100%, completa una vuelta, se suma al contador global y se recalculan los tiempos del *Live Timing*.
+* Al llegar al 100%, completa una vuelta, se suma al contador global y se recalculan los tiempos.
+* Los tiempos, posiciones y datos de piloto (estrés, cansancio, desgaste) solo se actualizan en la interfaz cuando un monoplaza cruza la línea de meta, reflejando la falta de telemetría en tiempo real de la temporada 1976.
 
 ### 4.2. Variables de los Pilotos del Jugador
 El usuario gestiona dos monoplazas independientes con las siguientes métricas:
@@ -45,10 +46,10 @@ El usuario gestiona dos monoplazas independientes con las siguientes métricas:
   * `Alto rendimiento`: Máxima velocidad, máximo consumo de combustible.
   * `Normal`: Equilibrio entre velocidad y consumo.
   * `Ahorro`: Menor velocidad, menor consumo.
-* **DRS/ERS:**
-  * `Exprimir`: Gastar DRS en cada vuelta disponible.
-  * `Normal`: Uso equilibrado del DRS.
-  * `Reservar`: Mantener el DRS alto para momentos clave.
+* **Empuje (Push):**
+  * `A fondo`: El piloto da el máximo de su capacidad, arriesgando más y aumentando el desgaste y estrés.
+  * `Normal`: Esfuerzo equilibrado.
+  * `Reservar`: El piloto dosifica fuerzas para conservar neumáticos y reducir el desgaste general.
 * **Degradación de Neumáticos (Tyre Wear):** Comienza en 100%. Al caer por debajo del 30%, el monoplaza pierde adherencia y sus tiempos por vuelta empeoran severamente.
 * **Combustible:** Nivel de gasolina (0–100 kg). Mayor carga = más peso = vueltas más lentas. Menos combustible = coche más ligero. El consumo varía según el modo motor seleccionado.
 * **Estrés:** Aumenta cuando el piloto está atacando o defendiendo una posición. Disminuye cuando el ritmo de carrera es bajo (Conservar). Afecta al rendimiento del piloto.
@@ -93,7 +94,7 @@ repostaje = combustible_a_cargar / 9 kg/s
 
 ### 4.6. Sistema de Órdenes (Carteles en Meta)
 
-* El jugador puede marcar órdenes en cualquier momento (ritmo, modo motor, DRS/ERS, llamada a boxes, compuesto, gasolina).
+* El jugador puede marcar órdenes en cualquier momento (ritmo, modo motor, empuje, llamada a boxes, compuesto, gasolina).
 * Las órdenes quedan en estado "pendiente" hasta que el piloto cruza la línea de meta, donde un cartel del equipo se las muestra.
 * Al cruzar la meta, todas las órdenes pendientes se ejecutan simultáneamente, simulando la lectura del cartel por parte del piloto.
 * No existe delay por cansancio en la comunicación, ya que no hay radio. El cansancio solo afecta al rendimiento en pista.
@@ -149,7 +150,7 @@ repostaje = combustible_a_cargar / 9 kg/s
 │  Vuelta N    │   [Canvas 2D con       │  ┌─ PILOTO 1 ────┐ │
 │  ─────────   │    20 monoplazas       │  │ Ritmo [▼]     │ │
 │  PILOTO 1    │    animados]           │  │ Motor [▼]     │ │
-│  P3  +1.2s   │                        │  │ DRS/ERS [▼]   │ │
+│  P3  +1.2s   │                        │  │ Empuje [▼]    │ │
 │  ⬛ S24(6)   │                        │  │ ── BOXES ──   │ │
 │              │                        │  │ Neumático [▼] │ │
 │  PILOTO 2    │                        │  │ Gasolina [══] │ │
@@ -174,7 +175,7 @@ repostaje = combustible_a_cargar / 9 kg/s
 ```
 
 ### 7.3. Panel de Órdenes (por piloto)
-* **Fieldset "Órdenes":** Dropdowns de Ritmo, Motor y DRS/ERS.
+* **Fieldset "Órdenes":** Dropdowns de Ritmo, Motor y Empuje.
 * **Fieldset "Boxes":** Dropdown de neumático, range de gasolina (0–100 kg con marcas 22/30/100) y checkbox "Solicitar parada".
 
 ### 7.4. Panel de Estados (por piloto)

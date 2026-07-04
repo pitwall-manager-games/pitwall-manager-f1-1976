@@ -4,13 +4,12 @@ import { calcTyreWear, calcFuelConsumption, TYRE_CONFIG, FUEL_CAPACITY } from '.
 const TOTAL_LAPS = 60;
 
 const state = {
-  mode: 'classic',
   currentLap: 1,
   weather: 'dry',
   forecast: { changeLap: 25, nextWeather: 'rain' },
   drivers: [
-    { id: 1, pace: 'normal', engine: 'normal', drs: 'normal', tyreWear: 0, fuel: 65, stress: 20, fatigue: 10, pitRequested: false, selectedTyre: 'medium', lapsOnTyre: 0, progress: 0, isPlayer: true, pendingOrders: {} },
-    { id: 2, pace: 'normal', engine: 'normal', drs: 'normal', tyreWear: 0, fuel: 65, stress: 10, fatigue: 5, pitRequested: false, selectedTyre: 'medium', lapsOnTyre: 0, progress: 0, isPlayer: true, pendingOrders: {} },
+    { id: 1, pace: 'normal', engine: 'normal', pushMode: 'normal', tyreWear: 0, fuel: 65, stress: 20, fatigue: 10, pitRequested: false, selectedTyre: 'medium', lapsOnTyre: 0, progress: 0, isPlayer: true, pendingOrders: {} },
+    { id: 2, pace: 'normal', engine: 'normal', pushMode: 'normal', tyreWear: 0, fuel: 65, stress: 10, fatigue: 5, pitRequested: false, selectedTyre: 'medium', lapsOnTyre: 0, progress: 0, isPlayer: true, pendingOrders: {} },
   ],
 };
 
@@ -39,8 +38,8 @@ function bindUI() {
     document.getElementById(`${prefix}-engine`).addEventListener('change', (e) => {
       state.drivers[index].pendingOrders.engine = e.target.value;
     });
-    document.getElementById(`${prefix}-drs`).addEventListener('change', (e) => {
-      state.drivers[index].pendingOrders.drs = e.target.value;
+    document.getElementById(`${prefix}-push`).addEventListener('change', (e) => {
+      state.drivers[index].pendingOrders.pushMode = e.target.value;
     });
     document.getElementById(`${prefix}-tyre-select`).addEventListener('change', (e) => {
       state.drivers[index].pendingOrders.selectedTyre = e.target.value;
@@ -90,9 +89,6 @@ function update() {
   });
 
   track.setCars(state.drivers);
-  renderTiming();
-  renderStatus();
-  renderCarDiagrams();
 }
 
 function getCurrentWeather() {
@@ -116,7 +112,7 @@ function getProgressGain(driver, _weather) {
     low: 0.85,
   };
 
-  const drsBoost = {
+  const pushBoost = {
     push: 1.05,
     normal: 1.0,
     save: 0.95,
@@ -130,9 +126,9 @@ function getProgressGain(driver, _weather) {
 
   const pace = baseSpeed[driver.pace] || 1.0;
   const engine = engineBoost[driver.engine] || 1.0;
-  const drs = drsBoost[driver.drs] || 1.0;
+  const push = pushBoost[driver.pushMode] || 1.0;
 
-  return 0.5 * pace * engine * drs * tyreFactor * fuelFactor * stressFactor * fatigueFactor;
+  return 0.5 * pace * engine * push * tyreFactor * fuelFactor * stressFactor * fatigueFactor;
 }
 
 function completeLap(driver, weather) {
@@ -154,6 +150,10 @@ function completeLap(driver, weather) {
 
   updateDriverState(driver);
   state.currentLap += 1;
+
+  renderTiming()
+  renderStatus()
+  renderCarDiagrams()
 }
 
 function executePitStop(driver) {
